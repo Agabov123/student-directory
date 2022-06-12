@@ -1,4 +1,6 @@
+require 'csv'
 @students = []
+@loadstudents = []
 def input_students
     @cohorts = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"]
     puts "Please enter student name: "
@@ -91,34 +93,44 @@ def print_menu
 end
 
 def save_students
-  file = File.open("students.csv", "w")
-  @students.each do |student|
-    student_data = [student[:name], student[:cohort]]
-    csv_line = student_data.join(",")
-    file.puts csv_line
+  puts "Please enter the name of the file that you want to write to."
+  filename = STDIN.gets.chomp
+  file = CSV.open(filename, "wb") do |csv|
+    @students.each do |student|
+      student_data = [student[:name], student[:country], student[:hobby], student[:cohort]]
+      csv << student_data
+    end
   end
-  file.close
+  puts "Student list was saved to the file."
+
 end
 
 def try_load_students
-  filename = ARGV.first
+  puts " Please enter the name of the file taht you want to read from."
+  filename = STDIN.gets.chomp
+  if filename == ""
+    filename = "students.csv"
+  end
   return if filename.nil? 
   if File.exist?(filename)
     load_students(filename)
-    puts "Loaded #{@students.count} from #{filename}"
+    puts "Loaded #{@loadstudents.count} from #{filename}"
   else
     puts "Sorry, #{filename} doesn't exist."
     exit 
   end
 end
 
-def load_students(filename = "students.csv")
-  file = File.open(filename, "r")
-  file.readlines.each do |line|
-  name, cohort = line.chomp.split(',')
-    @students << {name: name, cohort: cohort.to_sym}
+def load_students(filename)
+  f = File.open(filename, "r") do |file|
+    file.readlines.each do |line|
+    name, country, hobby, cohort = line.chomp.split(',')
+      @loadstudents << {name: name, country: country, hobby: hobby, cohort: cohort.to_sym}
+    end
+    @loadstudents.each do |student|
+      puts "#{student[:name]} #{student[:country]} #{student[:hobby]} (#{student[:cohort]} cohort)"
+    end
   end
-  file.close
 end
 
 def interactive_menu
